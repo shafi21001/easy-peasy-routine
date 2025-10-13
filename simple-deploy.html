@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Peasy Routine</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+        p {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        .status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f0f9ff;
+            border-radius: 6px;
+            border-left: 4px solid #0ea5e9;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        function App() {
+            const [message, setMessage] = React.useState('🎉 React is working!');
+            const [count, setCount] = React.useState(0);
+
+            return (
+                <div className="container">
+                    <h1>Easy Peasy Routine</h1>
+                    <p>University Class Schedule Management System</p>
+                    
+                    <div className="status">
+                        <h3>{message}</h3>
+                        <p>Click count: {count}</p>
+                        <button 
+                            className="btn" 
+                            onClick={() => {
+                                setCount(count + 1);
+                                setMessage(`✅ Everything is working! Clicked ${count + 1} times`);
+                            }}
+                        >
+                            Test React Functionality
+                        </button>
+                    </div>
+
+                    <div style={{marginTop: '2rem'}}>
+                        <button className="btn">Create New Routine</button>
+                        <button className="btn">View Routines</button>
+                        <button className="btn">How to Use</button>
+                    </div>
+
+                    <div style={{marginTop: '2rem', fontSize: '0.9rem', color: '#888'}}>
+                        <p>✅ GitHub Pages Deployment Working</p>
+                        <p>✅ React Components Loading</p>
+                        <p>✅ JavaScript Execution Working</p>
+                        <p>Current URL: {window.location.href}</p>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
