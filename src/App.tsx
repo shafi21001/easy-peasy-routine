@@ -7,6 +7,8 @@ import Wizard from './pages/Wizard';
 import Layout from './components/layout/Layout';
 
 function App() {
+  console.log('App component loaded');
+  
   return (
     <Router>
       <Layout>
