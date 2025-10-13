@@ -3,14 +3,8 @@ import react from '@vitejs/plugin-react';
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react()],
-    base: process.env.NODE_ENV === 'development' ? '/' : '/easy-peasy-routine/',
+    base: './',
     build: {
-        outDir: 'dist',
-        assetsDir: 'assets',
-        rollupOptions: {
-            output: {
-                manualChunks: undefined,
-            }
-        }
+        outDir: 'dist'
     }
 });
