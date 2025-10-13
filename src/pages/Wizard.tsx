@@ -46,7 +46,15 @@ const Wizard: React.FC = () => {
       teachers: wizardData.teachers || [],
       rooms: wizardData.rooms || [],
       courses: wizardData.courses || [],
-      grid: {},
+      grid: {
+        saturday: [],
+        sunday: [],
+        monday: [],
+        tuesday: [],
+        wednesday: [],
+        thursday: [],
+        friday: []
+      },
       mergedRanges: [],
       activeBatchIndicesByDay: activeBatchIndicesByDay as any,
     };

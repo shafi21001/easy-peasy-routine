@@ -1,4 +1,4 @@
-import { GridData, Day, MergedRange } from '../types';
+import { GridData, Day } from '../types';
 
 interface TentativeAssignment {
   teacherShort?: string;

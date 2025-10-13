@@ -54,7 +54,7 @@ const Step3: React.FC<Step3Props> = ({ onNext, onPrevious, initialData, batches,
       {batches.map(batch => (
         <div key={batch.name} className="border p-4 rounded-md">
           <h3 className="text-lg font-medium mb-4">Batch: {batch.name}</h3>
-          {courses.filter(c => c.batchName === batch.name).map((course, i) => {
+          {courses.filter(c => c.batchName === batch.name).map((course) => {
             const courseIndex = courses.indexOf(course);
             return (
               <div key={courseIndex} className="grid grid-cols-4 gap-3 items-center mb-2">
