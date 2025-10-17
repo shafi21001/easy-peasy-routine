@@ -5,6 +5,25 @@ interface TentativeAssignment {
   room?: string;
 }
 
+// Time slots mapping based on the actual schedule
+const timeSlots = [
+  '09:00-09:50',
+  '10:00-10:50',
+  '11:00-11:50',
+  '12:00-12:50',
+  '01:00-02:00', // Lunch/Prayer Break
+  '02:00-02:50',
+  '03:00-03:50',
+  '04:00-04:50',
+];
+
+const getTimeSlotString = (startCol: number, colspan: number): string => {
+  const startTime = timeSlots[startCol] ? timeSlots[startCol].split('-')[0] : `${startCol + 9}:00`;
+  const endIndex = startCol + colspan - 1;
+  const endTime = timeSlots[endIndex] ? timeSlots[endIndex].split('-')[1] : `${endIndex + 10}:00`;
+  return `${startTime}-${endTime}`;
+};
+
 export const checkConflicts = (
   gridData: GridData,
   currentDay: Day,
@@ -49,12 +68,12 @@ export const checkConflicts = (
       if (overlap) {
         if (teacherShort && cell.teacherShort === teacherShort) {
           const batchName = `Batch ${batchIndex + 1}`;
-          const timeSlot = `${cellStartCol + 8}:00-${cellStartCol + cellColspan + 8}:00`;
+          const timeSlot = getTimeSlotString(cellStartCol, cellColspan);
           teacherConflicts.add(`Teacher ${teacherShort} is already assigned to ${batchName} at ${currentDay}, ${timeSlot}`);
         }
         if (room && cell.room === room) {
           const batchName = `Batch ${batchIndex + 1}`;
-          const timeSlot = `${cellStartCol + 8}:00-${cellStartCol + cellColspan + 8}:00`;
+          const timeSlot = getTimeSlotString(cellStartCol, cellColspan);
           roomConflicts.add(`Room ${room} is already occupied by ${batchName} at ${currentDay}, ${timeSlot}`);
         }
       }

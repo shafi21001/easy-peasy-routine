@@ -13,7 +13,7 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ children }) => {
         width: '14in',
         minHeight: '8.5in',
         margin: '0 auto',
-        padding: '0.5in', // 0.5in page margins on all sides
+        padding: '0.4in', // 0.4in page margins on all sides for legal paper
         boxSizing: 'border-box',
       }}
     >

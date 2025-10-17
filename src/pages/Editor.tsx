@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Header from '../components/Editor/Header';
 import Grid from '../components/Editor/Grid';
+import GridMinimal from '../components/Editor/GridMinimal';
 import TeacherList from '../components/Editor/TeacherList';
 import CourseBoxes from '../components/Editor/CourseBoxes';
 import PrintPreview from '../components/Editor/PrintPreview';
+import PrintPreviewMinimal from '../components/Editor/PrintPreviewMinimal';
 import CellEditorModal from '../components/Editor/CellEditorModal';
 import { AppState, Cell, GridData, Day as DayType, Snapshot } from '../types';
 import { checkConflicts } from '../lib/conflicts';
@@ -221,7 +223,21 @@ const Editor: React.FC = () => {
   const handleSelectSnapshotToLoad = (id: string) => {
     const loadedState = loadSpecificSnapshot(id);
     if (loadedState) {
-      setAppState(loadedState);
+      // Ensure grid data is properly initialized
+      const processedState = {
+        ...loadedState,
+        grid: loadedState.grid || {
+          saturday: [],
+          sunday: [],
+          monday: [],
+          tuesday: [],
+          wednesday: [],
+          thursday: [],
+          friday: []
+        },
+        mergedRanges: loadedState.mergedRanges || []
+      };
+      setAppState(processedState);
       alert("Snapshot loaded successfully!");
       setShowLoadSnapshotModal(false);
     } else {
@@ -229,13 +245,13 @@ const Editor: React.FC = () => {
     }
   };
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadFullRoutine = async () => {
     try {
       setIsLoading(true);
       setError(null);
       const printElement = document.getElementById('print-preview');
       if (printElement) {
-        const filename = `Routine_${appState.departmentName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+        const filename = `Full_Routine_${appState.departmentName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
         await exportAsLegalPdf(printElement, filename);
       } else {
         setError("Print preview element not found. Please refresh the page and try again.");
@@ -243,6 +259,25 @@ const Editor: React.FC = () => {
     } catch (error) {
       console.error("Error generating PDF:", error);
       setError("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDownloadMinimalRoutine = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const printElement = document.getElementById('print-preview-minimal');
+      if (printElement) {
+        const filename = `Minimal_Routine_${appState.departmentName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+        await exportAsLegalPdf(printElement, filename);
+      } else {
+        setError("Print preview element not found. Please refresh the page and try again.");
+      }
+    } catch (error) {
+      console.error("Error generating minimal PDF:", error);
+      setError("Failed to generate minimal PDF. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -303,8 +338,8 @@ const Editor: React.FC = () => {
             effectiveFrom={appState.effectiveFrom}
           />
 
-          <div className="flex" style={{ gap: '0.2in', boxShadow: 'none' }}>
-            <div style={{ width: '10in', boxShadow: 'none' }}>
+          <div className="flex" style={{ gap: '0.1in' }}>
+            <div style={{ width: '10.1in' }}>
               <Grid
                 gridData={appState.grid}
                 batches={appState.batches}
@@ -315,7 +350,7 @@ const Editor: React.FC = () => {
             </div>
 
             {/* Right-center: Teachers list */}
-            <div style={{ width: '3.8in', boxShadow: 'none' }} className="border border-gray-300 p-2">
+            <div style={{ width: '3in' }}>
               <TeacherList
                 teachers={appState.teachers}
                 onTeacherClick={(shortName) => setHighlightTeacher(prev => prev === shortName ? null : shortName)}
@@ -330,6 +365,39 @@ const Editor: React.FC = () => {
 
           {/* Signature moved inside CourseBoxes last cell */}
         </PrintPreview>
+        
+        {/* Hidden Minimal Print Preview for PDF generation */}
+        <PrintPreviewMinimal>
+          <Header
+            universityName={appState.universityName}
+            departmentName={appState.departmentName}
+            effectiveFrom={appState.effectiveFrom}
+          />
+          <GridMinimal
+            gridData={appState.grid}
+            batches={appState.batches}
+            teachers={appState.teachers}
+            activeBatchIndicesByDay={appState.activeBatchIndicesByDay as any}
+          />
+          {/* Chairman Signature at bottom right */}
+          <div style={{ 
+            marginTop: '1in', 
+            display: 'flex', 
+            justifyContent: 'flex-end',
+            paddingRight: '0.5in'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ 
+                borderTop: '1px solid #000', 
+                width: '2.5in',
+                marginBottom: '4px'
+              }} />
+              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Chairman</div>
+              <div style={{ fontSize: '11px' }}>Department of {appState.departmentName}</div>
+              <div style={{ fontSize: '11px' }}>MBSTU</div>
+            </div>
+          </div>
+        </PrintPreviewMinimal>
       </div>
 
       {/* Actions at footer */}
@@ -338,7 +406,7 @@ const Editor: React.FC = () => {
           <button onClick={handleSaveSnapshot} className="px-4 py-2 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700">Save Snapshot</button>
           <button onClick={handleLoadSnapshot} className="px-4 py-2 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700">Load Snapshot</button>
           <button 
-            onClick={handleDownloadPdf} 
+            onClick={handleDownloadFullRoutine} 
             disabled={isLoading}
             className={`${
               isLoading 
@@ -346,7 +414,18 @@ const Editor: React.FC = () => {
                 : 'bg-red-600 hover:bg-red-700'
             } px-4 py-2 rounded-md shadow-md text-white`}
           >
-            {isLoading ? 'Generating PDF...' : 'Download PDF'}
+            {isLoading ? 'Generating PDF...' : 'Download Full Routine'}
+          </button>
+          <button 
+            onClick={handleDownloadMinimalRoutine} 
+            disabled={isLoading}
+            className={`${
+              isLoading 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-green-600 hover:bg-green-700'
+            } px-4 py-2 rounded-md shadow-md text-white`}
+          >
+            {isLoading ? 'Generating PDF...' : 'Download Minimal Routine'}
           </button>
         </div>
       </div>
@@ -364,6 +443,44 @@ const Editor: React.FC = () => {
           timeslotIndex={currentCellCoords.timeslotIndex}
           canMerge={canMerge}
         />
+      )}
+
+      {showLoadSnapshotModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-auto">
+            <h2 className="text-2xl font-bold mb-4">Load Snapshot</h2>
+            {availableSnapshots.length === 0 ? (
+              <p className="text-gray-600">No snapshots available.</p>
+            ) : (
+              <div className="space-y-3">
+                {availableSnapshots.map(snapshot => (
+                  <div key={snapshot.id} className="border border-gray-300 rounded-lg p-3 hover:bg-gray-50">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-semibold">{snapshot.name}</h3>
+                        <p className="text-sm text-gray-600">{new Date(snapshot.date).toLocaleString()}</p>
+                      </div>
+                      <button
+                        onClick={() => handleSelectSnapshotToLoad(snapshot.id)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                        Load
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setShowLoadSnapshotModal(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {conflictMessage && (
@@ -414,39 +531,6 @@ const Editor: React.FC = () => {
                 className="px-5 py-2.5 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 active:bg-red-800 shadow-md hover:shadow-lg transition-all transform hover:scale-105"
               >
                 ⚡ Override
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showLoadSnapshotModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-96">
-            <h2 className="text-xl font-bold mb-4">Load Routine Snapshot</h2>
-            {availableSnapshots.length === 0 ? (
-              <p>No snapshots available.</p>
-            ) : (
-              <ul className="space-y-2 mb-4">
-                {availableSnapshots.map(snapshot => (
-                  <li key={snapshot.id} className="flex justify-between items-center p-2 border rounded-md">
-                    <span>{snapshot.name} ({new Date(snapshot.date).toLocaleDateString()})</span>
-                    <button
-                      onClick={() => handleSelectSnapshotToLoad(snapshot.id)}
-                      className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
-                    >
-                      Load
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="flex justify-end">
-              <button
-                onClick={() => setShowLoadSnapshotModal(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md shadow-md hover:bg-gray-400"
-              >
-                Close
               </button>
             </div>
           </div>

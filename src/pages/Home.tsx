@@ -1,7 +1,44 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { listSnapshots, loadSnapshot } from '../lib/storage';
+import { Snapshot } from '../types';
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
+  const [showLoadModal, setShowLoadModal] = useState(false);
+  const [availableSnapshots, setAvailableSnapshots] = useState<Snapshot[]>([]);
+
+  const handleViewExistingRoutines = () => {
+    const snapshots = listSnapshots();
+    if (snapshots.length === 0) {
+      alert('No saved routines found. Please create a new routine first.');
+      return;
+    }
+    setAvailableSnapshots(snapshots);
+    setShowLoadModal(true);
+  };
+
+  const handleLoadSnapshot = (id: string) => {
+    const appState = loadSnapshot(id);
+    if (appState) {
+      const processedState = {
+        ...appState,
+        grid: appState.grid || {
+          saturday: [],
+          sunday: [],
+          monday: [],
+          tuesday: [],
+          wednesday: [],
+          thursday: [],
+          friday: []
+        },
+        mergedRanges: appState.mergedRanges || []
+      };
+      navigate('/editor', { state: { appState: processedState } });
+    } else {
+      alert('Could not load routine. Please try again.');
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Hero Section */}
@@ -16,9 +53,12 @@ const Home: React.FC = () => {
           <Link to="/wizard" className="inline-flex items-center justify-center min-w-[16rem] px-6 py-3 text-white bg-blue-600 rounded-md shadow-md hover:bg-blue-700 transition-colors duration-200">
             Create New Routine
           </Link>
-          <Link to="/view-routines" className="inline-flex items-center justify-center min-w-[16rem] px-6 py-3 text-white bg-green-600 rounded-md shadow-md hover:bg-green-700 transition-colors duration-200">
+          <button 
+            onClick={handleViewExistingRoutines}
+            className="inline-flex items-center justify-center min-w-[16rem] px-6 py-3 text-white bg-green-600 rounded-md shadow-md hover:bg-green-700 transition-colors duration-200"
+          >
             View Existing Routines
-          </Link>
+          </button>
           <Link to="/how-to-use" className="inline-flex items-center justify-center min-w-[16rem] px-6 py-3 text-white bg-purple-600 rounded-md shadow-md hover:bg-purple-700 transition-colors duration-200">
             How to Use
           </Link>
@@ -54,6 +94,45 @@ const Home: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Load Snapshot Modal */}
+      {showLoadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-auto">
+            <h2 className="text-2xl font-bold mb-4">Select a Routine to Load</h2>
+            {availableSnapshots.length === 0 ? (
+              <p className="text-gray-600">No snapshots available.</p>
+            ) : (
+              <div className="space-y-3">
+                {availableSnapshots.map(snapshot => (
+                  <div key={snapshot.id} className="border border-gray-300 rounded-lg p-3 hover:bg-gray-50">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-semibold">{snapshot.name}</h3>
+                        <p className="text-sm text-gray-600">{new Date(snapshot.date).toLocaleString()}</p>
+                      </div>
+                      <button
+                        onClick={() => handleLoadSnapshot(snapshot.id)}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                        Load
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setShowLoadModal(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

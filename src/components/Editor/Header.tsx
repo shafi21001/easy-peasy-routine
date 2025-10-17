@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ universityName, departmentName, effecti
   };
 
   return (
-    <div className="relative mb-4 pt-4 pb-3 border-b border-gray-300">
+    <div className="relative mb-4 pt-4 pb-3">
       <img
         src="/assets/logo.png"
         alt="Logo"

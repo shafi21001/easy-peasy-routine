@@ -21,7 +21,21 @@ const ViewRoutines: React.FC = () => {
   const handleEdit = (id: string) => {
     const appState = loadSnapshot(id);
     if (appState) {
-      navigate('/editor', { state: { appState } });
+      // Ensure grid data is properly initialized before navigating
+      const processedState = {
+        ...appState,
+        grid: appState.grid || {
+          saturday: [],
+          sunday: [],
+          monday: [],
+          tuesday: [],
+          wednesday: [],
+          thursday: [],
+          friday: []
+        },
+        mergedRanges: appState.mergedRanges || []
+      };
+      navigate('/editor', { state: { appState: processedState } });
     } else {
       alert('Could not load routine for editing.');
     }
