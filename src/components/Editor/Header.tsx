@@ -22,17 +22,17 @@ const Header: React.FC<HeaderProps> = ({ universityName, departmentName, effecti
   };
 
   return (
-    <div className="relative mb-4 pt-4 pb-3">
+    <div className="relative mb-2 pt-2 pb-2">
       <img
         src="/assets/logo.png"
         alt="Logo"
-        style={{ width: '0.8in', height: '0.8in' }}
+        style={{ width: '0.7in', height: '0.7in' }}
         className="absolute top-0 left-0"
       />
       <div className="text-center">
-        <h2 className="font-semibold" style={{ fontSize: '17px', fontFamily: 'Times New Roman, Times, serif' }}>Department of {departmentName}</h2>
-        <h1 className="font-bold" style={{ fontSize: '17px', fontFamily: 'Times New Roman, Times, serif' }}>{universityName}</h1>
-        <p style={{ fontSize: '17px', fontFamily: 'Times New Roman, Times, serif' }}>Class Routine — Effective From: {formatDate(effectiveFrom)}</p>
+        <h2 className="font-semibold" style={{ fontSize: '16px', fontFamily: 'Times New Roman, Times, serif', marginBottom: '2px' }}>Department of {departmentName}</h2>
+        <h1 className="font-bold" style={{ fontSize: '16px', fontFamily: 'Times New Roman, Times, serif', marginBottom: '2px' }}>{universityName}</h1>
+        <p style={{ fontSize: '15px', fontFamily: 'Times New Roman, Times, serif' }}>Class Routine — Effective From: {formatDate(effectiveFrom)}</p>
       </div>
     </div>
   );

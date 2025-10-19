@@ -29,17 +29,35 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
     return null;
   }
 
-  // Tune sizing for typical 6–7 batches
-  const manyBatches = batches.length >= 7;
-  const textSizeClass = manyBatches ? 'text-[11px]' : 'text-[12px]';
-  const cellPaddingY = manyBatches ? 'py-1' : 'py-1.5';
-  const headerPaddingY = manyBatches ? 'py-1' : 'py-1.5';
+  // Calculate exact sizing to fit within 6.3 inches (604.8px at 96 DPI)
+  // Maximum possible rows: 32 body rows + 1 header row = 33 total
+  const totalRows = daysOfWeek.reduce((acc, d) => {
+    const dayRows = activeBatchIndicesByDay?.[d]?.length || batches.length;
+    return acc + dayRows;
+  }, 0);
+  
+  // Calculate row height: 6.3 inches = 604.8px at 96 DPI
+  // All rows (including header) should have same height
+  // Account for borders (1px per row)
+  const totalRowsWithHeader = totalRows + 1; // +1 for header row
+  const availableHeight = 605; // 6.3 inches in pixels
+  const calculatedRowHeight = Math.floor((availableHeight - totalRowsWithHeader) / Math.max(totalRowsWithHeader, 1));
+  
+  // Set row height with minimum of 16px to maintain readability
+  // For 31 rows (30 body + 1 header): (605-31)/31 = 18.5px per row
+  const rowHeightPx = Math.max(Math.min(calculatedRowHeight, 30), 16);
+  
+  // Maximize font sizes for better print visibility
+  // Use larger fonts since we have more space (6.3 inches)
+  const textSizeClass = rowHeightPx <= 17 ? 'text-[9px]' : rowHeightPx <= 19 ? 'text-[10px]' : rowHeightPx <= 22 ? 'text-[11px]' : 'text-[12px]';
+  const cellPaddingY = rowHeightPx > 20 ? 'py-0.5' : ''; // Add padding for larger rows
+  const headerPaddingY = cellPaddingY; // Same padding for header
 
   // Determine total number of body rows across all days to support a single merged lunch column
   const activeIndicesByDay: Record<DayType, number[]> = Object.fromEntries(
     daysOfWeek.map((d) => [d, activeBatchIndicesByDay?.[d] ?? batches.map((_, i) => i)])
   ) as Record<DayType, number[]>;
-  const totalBodyRows = daysOfWeek.reduce((acc, d) => acc + (activeIndicesByDay[d]?.length || 0), 0);
+  const totalBodyRows = totalRows;
   let lunchCellRendered = false;
 
   // Helper function to get teacher short name from teachers list
@@ -50,8 +68,8 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
   };
 
   return (
-    <div className="w-full">
-      <table className={`w-full table-fixed border-collapse ${textSizeClass}`}>
+    <div className="w-full" style={{ height: '100%', maxHeight: '6.3in' }}>
+      <table className={`w-full table-fixed border-collapse ${textSizeClass}`} style={{ tableLayout: 'fixed' }}>
         <colgroup>
           <col style={{ width: '7%' }} />
           <col style={{ width: '11%' }} />
@@ -61,13 +79,13 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
         </colgroup>
         <thead>
           <tr>
-            <th className={`border border-gray-800 ${headerPaddingY} px-1 align-middle text-gray-900 font-bold`} style={{ fontSize: '13px' }}>Time</th>
-            <th className={`border border-gray-800 ${headerPaddingY} px-1 align-middle text-gray-900 font-bold`} style={{ fontSize: '13px' }}>All Year</th>
+            <th className={`border border-gray-800 ${headerPaddingY} align-middle text-gray-900 font-bold`} style={{ fontSize: '11px', height: `${rowHeightPx}px`, padding: '2px' }}>Time</th>
+            <th className={`border border-gray-800 ${headerPaddingY} align-middle text-gray-900 font-bold`} style={{ fontSize: '11px', height: `${rowHeightPx}px`, padding: '2px' }}>All Year</th>
             {timeHeaders.map((h, i) => (
               <th
                 key={h}
-                className={`border border-gray-800 ${headerPaddingY} px-1 text-center text-gray-900 font-bold ${i === LUNCH_INDEX ? 'bg-yellow-50' : 'bg-gray-100'}`}
-                style={{ fontSize: '13px' }}
+                className={`border border-gray-800 ${headerPaddingY} text-center text-gray-900 font-bold ${i === LUNCH_INDEX ? 'bg-yellow-50' : 'bg-gray-100'}`}
+                style={{ fontSize: '11px', height: `${rowHeightPx}px`, padding: '2px' }}
               >
                 {h}
               </th>
@@ -80,7 +98,12 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
               {(() => {
                 const activeIndices = activeIndicesByDay?.[day] ?? batches.map((_, i) => i);
                 if (!activeIndices || activeIndices.length === 0) return null;
-                const rowHeightStyle: React.CSSProperties = { height: '38px' };
+                // Use the calculated row height
+                const rowHeightStyle: React.CSSProperties = { 
+                  height: `${rowHeightPx}px`,
+                  padding: '1px',
+                  lineHeight: 1.1
+                };
                 return activeIndices.map((batchIndex, rowIdx) => {
                   const batch = batches[batchIndex];
                   // Determine whether to render the day cell with rowSpan
@@ -88,7 +111,7 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
                   return (
                     <tr key={`${day}-${batch.name}`}>
                       {renderDayCell && (
-                        <td rowSpan={activeIndices.length} className="border border-gray-800 p-1 text-center font-bold uppercase align-middle bg-gray-50 text-gray-900" style={{ fontSize: '13px', ...rowHeightStyle }}>
+                        <td rowSpan={activeIndices.length} className="border border-gray-800 text-center font-bold uppercase align-middle bg-gray-50 text-gray-900" style={{ fontSize: '10px', ...rowHeightStyle, padding: '1px 2px' }}>
                           {day === 'saturday' && 'SAT'}
                           {day === 'sunday' && 'SUN'}
                           {day === 'monday' && 'MON'}
@@ -96,7 +119,7 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
                           {day === 'wednesday' && 'WED'}
                         </td>
                       )}
-                      <td className={`border border-gray-800 ${cellPaddingY} px-1 text-center font-bold bg-gray-50 text-gray-900`} style={{ ...rowHeightStyle, fontSize: '12px' }}>{batch.name}</td>
+                      <td className={`border border-gray-800 ${cellPaddingY} text-center font-bold bg-gray-50 text-gray-900`} style={{ ...rowHeightStyle, fontSize: '10px', padding: '1px 2px' }}>{batch.name}</td>
 
                       {timeHeaders.map((_, timeslotIndex) => {
                         if (timeslotIndex === LUNCH_INDEX) {
@@ -107,7 +130,7 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
                               <td
                                 key={`global-lunch`}
                                 rowSpan={totalBodyRows}
-                                className={`border border-gray-800 ${cellPaddingY} px-1 text-center font-bold align-middle bg-yellow-50 text-gray-900 relative`}
+                                className={`border border-gray-800 text-center font-bold align-middle bg-yellow-50 text-gray-900 relative`}
                                 style={{ ...rowHeightStyle }}
                               >
                                 <div
@@ -117,7 +140,7 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
                                     left: '50%',
                                     transform: 'translate(-50%, -50%) rotate(90deg)',
                                     transformOrigin: 'center',
-                                    fontSize: '24px',
+                                    fontSize: rowHeightPx <= 18 ? '14px' : rowHeightPx <= 20 ? '16px' : '18px',
                                     letterSpacing: '0.5px',
                                     whiteSpace: 'nowrap',
                                     fontWeight: 'bold',
@@ -159,11 +182,11 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
                           <td
                             key={`${day}-${batchIndex}-${timeslotIndex}`}
                             colSpan={colSpan}
-                            className={`border border-gray-800 ${cellPaddingY} px-1 text-center align-middle whitespace-nowrap ${cellData.courseCode ? 'bg-blue-50' : 'bg-white'} text-gray-900`}
+                            className={`border border-gray-800 ${cellPaddingY} text-center align-middle ${cellData.courseCode ? 'bg-blue-50' : 'bg-white'} text-gray-900`}
                             style={{ ...rowHeightStyle }}
                           >
                             {cellContent && (
-                              <span className="font-semibold grid-cell-text" data-max="12" data-min="8" style={{ fontSize: '11px', color: '#000000' }}>
+                              <span className="font-semibold grid-cell-text" data-max="11" data-min="8" style={{ fontSize: `${Math.max(rowHeightPx * 0.55, 9)}px`, color: '#000000', fontWeight: '600', lineHeight: 1.1, display: 'block', padding: '0 1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                 {cellContent}
                               </span>
                             )}

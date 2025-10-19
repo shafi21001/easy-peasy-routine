@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Header from '../components/Editor/Header';
+import HeaderMinimal from '../components/Editor/HeaderMinimal';
 import Grid from '../components/Editor/Grid';
 import GridMinimal from '../components/Editor/GridMinimal';
 import TeacherList from '../components/Editor/TeacherList';
@@ -8,31 +9,27 @@ import CourseBoxes from '../components/Editor/CourseBoxes';
 import PrintPreview from '../components/Editor/PrintPreview';
 import PrintPreviewMinimal from '../components/Editor/PrintPreviewMinimal';
 import CellEditorModal from '../components/Editor/CellEditorModal';
-import { AppState, Cell, GridData, Day as DayType, Snapshot } from '../types';
+import { AppState, Cell, GridData, Day as DayType } from '../types';
 import { checkConflicts } from '../lib/conflicts';
 import { exportAsLegalPdf } from '../lib/pdf';
-import { saveState, loadState, saveSnapshot, listSnapshots, loadSnapshot as loadSpecificSnapshot } from '../lib/storage';
+import { saveState, loadState, importSnapshotFromJson } from '../lib/storage';
 import debounce from 'lodash.debounce';
 
 const Editor: React.FC = () => {
   const location = useLocation();
   const initialAppState = location.state?.appState as AppState;
+  const loadedAppState = location.state?.loadedAppState as AppState;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [appState, setAppState] = useState<AppState>(() => {
+    // Check if we have a loaded state from file picker (from Home page)
+    if (loadedAppState) {
+      // The loadedAppState from importSnapshotFromJson already has properly initialized grid
+      return loadedAppState;
+    }
     if (initialAppState) {
-      return {
-        ...initialAppState,
-        grid: initialAppState.grid || {
-          saturday: [],
-          sunday: [],
-          monday: [],
-          tuesday: [],
-          wednesday: [],
-          thursday: [],
-          friday: []
-        },
-        mergedRanges: initialAppState.mergedRanges || [],
-      };
+      // This is from ViewRoutines page, also already properly initialized
+      return initialAppState;
     }
     // Try to load from localStorage first
     const savedState = loadState();
@@ -64,15 +61,22 @@ const Editor: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentCellCoords, setCurrentCellCoords] = useState<{ day: DayType; batchIndex: number; timeslotIndex: number } | null>(null);
   const [conflictMessage, setConflictMessage] = useState<string | null>(null);
-  const [showLoadSnapshotModal, setShowLoadSnapshotModal] = useState(false);
-  const [availableSnapshots, setAvailableSnapshots] = useState<Snapshot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [highlightTeacher, setHighlightTeacher] = useState<string | null>(null);
 
   const daysOfWeek: DayType[] = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday'];
   const timeSlots = Array.from({ length: 8 }, (_, i) => i);
   const LUNCH_INDEX = 4;
+
+  // Clear navigation state after loading
+  useEffect(() => {
+    if (location.state?.loadedAppState) {
+      // Clear the state to prevent reloading on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Autosave effect
   useEffect(() => {
@@ -88,7 +92,12 @@ const Editor: React.FC = () => {
 
   // Initialize grid if it's empty or not properly structured
   useEffect(() => {
-    if (!appState.grid || Object.keys(appState.grid).length === 0 || appState.batches.length > 0) {
+    // Only initialize grid if it's truly empty or malformed
+    // Don't reinitialize if we already have grid data (from loaded snapshot)
+    const hasGridData = appState.grid && Object.keys(appState.grid).length > 0 && 
+                       daysOfWeek.some(day => appState.grid[day] && appState.grid[day].length > 0);
+    
+    if (!hasGridData && appState.batches.length > 0) {
       const newGrid: GridData = {
         saturday: [],
         sunday: [],
@@ -99,11 +108,7 @@ const Editor: React.FC = () => {
         friday: []
       };
       daysOfWeek.forEach(day => {
-        if (appState.batches.length > 0) {
-          newGrid[day] = Array(appState.batches.length).fill(null).map(() => Array(timeSlots.length).fill({}));
-        } else {
-          newGrid[day] = [];
-        }
+        newGrid[day] = Array(appState.batches.length).fill(null).map(() => Array(timeSlots.length).fill(null).map(() => ({})));
       });
       setAppState(prev => ({ ...prev, grid: newGrid }));
     }
@@ -204,8 +209,26 @@ const Editor: React.FC = () => {
     const snapshotName = prompt("Enter a name for this routine snapshot:");
     if (snapshotName && snapshotName.trim()) {
       try {
-        saveSnapshot(snapshotName.trim(), appState);
-        alert("Routine saved as snapshot!");
+        // Create filename with date
+        const date = new Date().toISOString().split('T')[0];
+        const filename = `routine-${snapshotName.trim().replace(/\s/g, '-')}-${date}.json`;
+        
+        // Create JSON string of the app state
+        const dataStr = JSON.stringify(appState, null, 2);
+        
+        // Create blob and download link
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url;
+        downloadLink.download = filename;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        URL.revokeObjectURL(url);
+        
+        setSuccessMessage(`Routine saved as ${filename}`);
+        setTimeout(() => setSuccessMessage(null), 3000);
       } catch (error) {
         console.error("Error saving snapshot:", error);
         setError("Failed to save snapshot. Please try again.");
@@ -216,34 +239,48 @@ const Editor: React.FC = () => {
   };
 
   const handleLoadSnapshot = () => {
-    setAvailableSnapshots(listSnapshots());
-    setShowLoadSnapshotModal(true);
+    // Trigger file picker
+    fileInputRef.current?.click();
   };
 
-  const handleSelectSnapshotToLoad = (id: string) => {
-    const loadedState = loadSpecificSnapshot(id);
-    if (loadedState) {
-      // Ensure grid data is properly initialized
-      const processedState = {
-        ...loadedState,
-        grid: loadedState.grid || {
-          saturday: [],
-          sunday: [],
-          monday: [],
-          tuesday: [],
-          wednesday: [],
-          thursday: [],
-          friday: []
-        },
-        mergedRanges: loadedState.mergedRanges || []
-      };
-      setAppState(processedState);
-      alert("Snapshot loaded successfully!");
-      setShowLoadSnapshotModal(false);
-    } else {
-      alert("Failed to load snapshot.");
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const loadedState = importSnapshotFromJson(text);
+      
+      if (loadedState) {
+        // Ensure grid data is properly initialized
+        const processedState = {
+          ...loadedState,
+          grid: loadedState.grid || {
+            saturday: [],
+            sunday: [],
+            monday: [],
+            tuesday: [],
+            wednesday: [],
+            thursday: [],
+            friday: []
+          },
+          mergedRanges: loadedState.mergedRanges || [],
+        };
+        setAppState(processedState);
+        setSuccessMessage('Routine loaded successfully!');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        alert('Invalid routine file. Please select a valid routine snapshot file.');
+      }
+    } catch (error) {
+      console.error('Error loading file:', error);
+      alert('Failed to load routine file. Please make sure it is a valid JSON file.');
     }
+    
+    // Reset the input so the same file can be selected again
+    event.target.value = '';
   };
+
 
   const handleDownloadFullRoutine = async () => {
     try {
@@ -329,6 +366,25 @@ const Editor: React.FC = () => {
         </div>
       )}
 
+      {/* Success Message Display with Yellow Background */}
+      {successMessage && (
+        <div className="fixed top-4 right-4 bg-yellow-300 border-2 border-yellow-500 text-gray-900 px-5 py-4 rounded-lg z-50 shadow-xl">
+          <div className="flex items-center">
+            <div className="flex-1">
+              <p className="text-base font-semibold">{successMessage}</p>
+            </div>
+            <div className="ml-4">
+              <button
+                onClick={() => setSuccessMessage(null)}
+                className="text-gray-700 hover:text-gray-900 text-xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Printable Layout */}
       <div className="flex-1 p-2 overflow-auto">
         <PrintPreview>
@@ -368,33 +424,47 @@ const Editor: React.FC = () => {
         
         {/* Hidden Minimal Print Preview for PDF generation */}
         <PrintPreviewMinimal>
-          <Header
+          {/* Header section with logo - 0.8 inch */}
+          <HeaderMinimal
             universityName={appState.universityName}
             departmentName={appState.departmentName}
             effectiveFrom={appState.effectiveFrom}
           />
-          <GridMinimal
-            gridData={appState.grid}
-            batches={appState.batches}
-            teachers={appState.teachers}
-            activeBatchIndicesByDay={appState.activeBatchIndicesByDay as any}
-          />
-          {/* Chairman Signature at bottom right */}
+          
+          {/* Grid section - max 6.3 inch */}
+          <div style={{ height: '6.3in', maxHeight: '6.3in', overflow: 'hidden', position: 'relative' }}>
+            <GridMinimal
+              gridData={appState.grid}
+              batches={appState.batches}
+              teachers={appState.teachers}
+              activeBatchIndicesByDay={appState.activeBatchIndicesByDay as any}
+            />
+          </div>
+          
+          {/* Chairman Signature section - 0.7 inch (reduced since grid is larger) */}
           <div style={{ 
-            marginTop: '1in', 
-            display: 'flex', 
+            height: '0.7in',
+            width: '100%',
+            display: 'flex',
             justifyContent: 'flex-end',
-            paddingRight: '0.5in'
+            alignItems: 'flex-end',
+            paddingRight: '1in'
           }}>
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              width: '3in',
+              textAlign: 'center'
+            }}>
               <div style={{ 
-                borderTop: '1px solid #000', 
-                width: '2.5in',
-                marginBottom: '4px'
+                height: '30px',  // Empty space for signature (line 1)
+                width: '100%'
               }} />
-              <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Chairman</div>
-              <div style={{ fontSize: '11px' }}>Department of {appState.departmentName}</div>
-              <div style={{ fontSize: '11px' }}>MBSTU</div>
+              <div style={{ 
+                borderTop: '1px solid #000',  // Underline (line 2)
+                width: '100%',
+                marginBottom: '2px'
+              }} />
+              <div style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '2px' }}>Chairman</div>  {/* Line 3 */}
+              <div style={{ fontSize: '12px' }}>Department of ICT, MBSTU</div>  {/* Line 4 */}
             </div>
           </div>
         </PrintPreviewMinimal>
@@ -445,43 +515,6 @@ const Editor: React.FC = () => {
         />
       )}
 
-      {showLoadSnapshotModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl max-h-[80vh] overflow-auto">
-            <h2 className="text-2xl font-bold mb-4">Load Snapshot</h2>
-            {availableSnapshots.length === 0 ? (
-              <p className="text-gray-600">No snapshots available.</p>
-            ) : (
-              <div className="space-y-3">
-                {availableSnapshots.map(snapshot => (
-                  <div key={snapshot.id} className="border border-gray-300 rounded-lg p-3 hover:bg-gray-50">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="font-semibold">{snapshot.name}</h3>
-                        <p className="text-sm text-gray-600">{new Date(snapshot.date).toLocaleString()}</p>
-                      </div>
-                      <button
-                        onClick={() => handleSelectSnapshotToLoad(snapshot.id)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                      >
-                        Load
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setShowLoadSnapshotModal(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {conflictMessage && (
         <div className="fixed top-[56px] right-0 bottom-0 w-[420px] z-50 bg-red-100 border-l-4 border-red-400 overflow-auto shadow-2xl" style={{backgroundColor: '#fecaca'}}>
@@ -536,6 +569,15 @@ const Editor: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Hidden file input for loading snapshots */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={handleFileSelect}
+        style={{ display: 'none' }}
+      />
     </div>
   );
 };

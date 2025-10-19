@@ -1,4 +1,4 @@
-import { AppState, Snapshot } from '../types';
+import { AppState, Snapshot, Day, GridData } from '../types';
 
 const APP_STATE_KEY = 'easyPeasyRoutine_v1';
 const SNAPSHOTS_KEY = 'easyPeasySnapshots_v1';
@@ -58,7 +58,36 @@ export const loadSnapshot = (id: string): AppState | undefined => {
   try {
     const snapshots = listSnapshots();
     const snapshot = snapshots.find(s => s.id === id);
-    return snapshot?.appState;
+    if (!snapshot?.appState) return undefined;
+    
+    // Ensure grid is properly initialized with correct dimensions
+    const days: Day[] = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+    const numBatches = snapshot.appState.batches.length;
+    const numTimeslots = 8; // Fixed number of timeslots
+    
+    // Initialize grid with proper structure if needed
+    const processedGrid: GridData = {} as GridData;
+    
+    days.forEach(day => {
+      if (!snapshot.appState.grid[day]) {
+        // Initialize empty grid for this day
+        processedGrid[day] = Array(numBatches).fill(null).map(() => Array(numTimeslots).fill(null).map(() => ({})));
+      } else {
+        // Ensure the existing grid has proper dimensions
+        processedGrid[day] = Array(numBatches).fill(null).map((_, batchIdx) => {
+          return Array(numTimeslots).fill(null).map((_, timeslotIdx) => {
+            // Preserve existing cell data if it exists
+            return snapshot.appState.grid[day]?.[batchIdx]?.[timeslotIdx] || {};
+          });
+        });
+      }
+    });
+    
+    return {
+      ...snapshot.appState,
+      grid: processedGrid,
+      mergedRanges: snapshot.appState.mergedRanges || []
+    };
   } catch (error) {
     console.error("Error loading snapshot from localStorage:", error);
     return undefined;
@@ -91,7 +120,34 @@ export const importSnapshotFromJson = (jsonString: string): AppState | undefined
     const importedState: AppState = JSON.parse(jsonString);
     // Basic validation to ensure it's an AppState object
     if (importedState.universityName && importedState.batches && importedState.teachers) {
-      return importedState;
+      // Ensure grid is properly initialized with correct dimensions
+      const days: Day[] = ['saturday', 'sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+      const numBatches = importedState.batches.length;
+      const numTimeslots = 8; // Fixed number of timeslots
+      
+      // Initialize grid with proper structure if needed
+      const processedGrid: GridData = {} as GridData;
+      
+      days.forEach(day => {
+        if (!importedState.grid[day]) {
+          // Initialize empty grid for this day
+          processedGrid[day] = Array(numBatches).fill(null).map(() => Array(numTimeslots).fill(null).map(() => ({})));
+        } else {
+          // Ensure the existing grid has proper dimensions
+          processedGrid[day] = Array(numBatches).fill(null).map((_, batchIdx) => {
+            return Array(numTimeslots).fill(null).map((_, timeslotIdx) => {
+              // Preserve existing cell data if it exists
+              return importedState.grid[day]?.[batchIdx]?.[timeslotIdx] || {};
+            });
+          });
+        }
+      });
+      
+      return {
+        ...importedState,
+        grid: processedGrid,
+        mergedRanges: importedState.mergedRanges || []
+      };
     }
     console.error("Invalid AppState structure in imported JSON.");
     return undefined;
