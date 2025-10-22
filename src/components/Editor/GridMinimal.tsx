@@ -203,21 +203,14 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
                             style={{ ...rowHeightStyle }}
                           >
                             {cellContent && (
-                              <span className="font-bold grid-cell-text" data-max="13" data-min="9" style={{ 
-                                fontSize: `${Math.max(rowHeightPx * 0.65, 9)}px`, 
-                                color: '#000000', 
+                              <span style={{ 
+                                fontSize: '11px', 
                                 fontWeight: '800', 
                                 fontFamily: 'Times New Roman, Times, serif',
-                                lineHeight: 1.1, 
-                                display: 'block', 
-                                padding: '0 1px', 
+                                display: 'block',
                                 whiteSpace: 'nowrap', 
                                 overflow: 'hidden', 
-                                textOverflow: 'ellipsis',
-                                WebkitFontSmoothing: 'subpixel-antialiased',
-                                textRendering: 'geometricPrecision',
-                                transform: 'translateZ(0)',
-                                letterSpacing: '0.2px'
+                                textOverflow: 'ellipsis'
                               }}>
                                 {cellContent}
                               </span>
