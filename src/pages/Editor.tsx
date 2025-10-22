@@ -239,7 +239,7 @@ const Editor: React.FC = () => {
   };
 
   const handleLoadSnapshot = () => {
-    // Trigger file picker
+    // Directly trigger file picker
     fileInputRef.current?.click();
   };
 
@@ -431,8 +431,16 @@ const Editor: React.FC = () => {
             effectiveFrom={appState.effectiveFrom}
           />
           
-          {/* Grid section - max 6.3 inch */}
-          <div style={{ height: '6.3in', maxHeight: '6.3in', overflow: 'hidden', position: 'relative' }}>
+          {/* Grid section - max 6.9 inch to ensure all rows visible */}
+          <div style={{ 
+            height: '6.9in', 
+            maxHeight: '6.9in', 
+            overflow: 'hidden', 
+            position: 'relative',
+            boxSizing: 'border-box',
+            WebkitFontSmoothing: 'antialiased',
+            MozOsxFontSmoothing: 'grayscale'
+          }}>
             <GridMinimal
               gridData={appState.grid}
               batches={appState.batches}
@@ -441,9 +449,9 @@ const Editor: React.FC = () => {
             />
           </div>
           
-          {/* Chairman Signature section - 0.7 inch (reduced since grid is larger) */}
+          {/* Chairman Signature section - 0.5 inch */}
           <div style={{ 
-            height: '0.7in',
+            height: '0.5in',
             width: '100%',
             display: 'flex',
             justifyContent: 'flex-end',
@@ -578,6 +586,7 @@ const Editor: React.FC = () => {
         onChange={handleFileSelect}
         style={{ display: 'none' }}
       />
+
     </div>
   );
 };

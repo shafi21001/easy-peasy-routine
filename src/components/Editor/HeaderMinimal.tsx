@@ -6,7 +6,7 @@ interface HeaderMinimalProps {
   effectiveFrom: string;
 }
 
-const HeaderMinimal: React.FC<HeaderMinimalProps> = ({ universityName, departmentName, effectiveFrom }) => {
+const HeaderMinimal: React.FC<HeaderMinimalProps> = ({ departmentName, effectiveFrom }) => {
   const formatDate = (iso: string) => {
     try {
       const d = new Date(iso);
@@ -46,29 +46,49 @@ const HeaderMinimal: React.FC<HeaderMinimalProps> = ({ universityName, departmen
       {/* Centered text */}
       <div style={{ 
         flex: 1,
-        textAlign: 'center',
-        paddingLeft: '0.7in' // Offset for logo space
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingLeft: '0.7in', // Offset for logo space
+        lineHeight: '1.2', // Tighter line spacing
+        WebkitFontSmoothing: 'subpixel-antialiased',
+        MozOsxFontSmoothing: 'grayscale',
+        textRendering: 'optimizeLegibility'
       }}>
-        <h2 style={{ 
-          fontSize: '14px', 
+        <h1 style={{ 
+          fontSize: '16px', 
           fontFamily: 'Times New Roman, Times, serif', 
-          marginBottom: '2px',
-          fontWeight: 'bold'
+          margin: 0,
+          padding: 0,
+          fontWeight: 900, // Extra bold
+          letterSpacing: '0.3px',
+          lineHeight: '1.1',
+          WebkitFontSmoothing: 'subpixel-antialiased',
+          textRendering: 'geometricPrecision'
+        }}>
+          Mawlana Bhashani Science and Technology University
+        </h1>
+        <h2 style={{ 
+          fontSize: '16px', 
+          fontFamily: 'Times New Roman, Times, serif', 
+          margin: 0,
+          padding: 0,
+          fontWeight: 'bold',
+          lineHeight: '1.1',
+          WebkitFontSmoothing: 'antialiased',
+          textRendering: 'geometricPrecision'
         }}>
           Department of {departmentName}
         </h2>
-        <h1 style={{ 
-          fontSize: '14px', 
-          fontFamily: 'Times New Roman, Times, serif', 
-          marginBottom: '2px',
-          fontWeight: 'bold'
-        }}>
-          {universityName}
-        </h1>
         <p style={{ 
-          fontSize: '13px', 
+          fontSize: '16px', 
           fontFamily: 'Times New Roman, Times, serif',
-          margin: 0
+          margin: 0,
+          padding: 0,
+          lineHeight: '1.1',
+          WebkitFontSmoothing: 'antialiased',
+          textRendering: 'geometricPrecision'
         }}>
           Class Routine — Effective From: {formatDate(effectiveFrom)}
         </p>

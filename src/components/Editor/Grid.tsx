@@ -56,10 +56,10 @@ const Grid: React.FC<GridProps> = ({ gridData, batches, onCellClick, activeBatch
     <div className="overflow-x-auto">
       <table className={`w-full table-fixed border-collapse ${textSizeClass}`}>
         <colgroup>
-          <col style={{ width: '7%' }} />
-          <col style={{ width: '12%' }} />
+          <col style={{ width: '6%' }} />
+          <col style={{ width: '10%' }} />
           {timeHeaders.map((_, i) => (
-            <col key={i} style={i === LUNCH_INDEX ? { width: '6%' } : {}} />
+            <col key={i} style={i === LUNCH_INDEX ? { width: '9%' } : { width: '12.5%' }} />
           ))}
         </colgroup>
         <thead>
@@ -155,7 +155,7 @@ const Grid: React.FC<GridProps> = ({ gridData, batches, onCellClick, activeBatch
                           >
                             {cellData.courseCode && (
                               <span className="font-semibold grid-cell-text" data-max="11" data-min="7" style={{ fontSize: '10px', color: '#111111' }}>
-                                {cellData.courseCode}{cellData.room ? ` (${cellData.room})` : ''}
+                                {cellData.courseCode}{cellData.room && cellData.room !== 'Not Specific' ? ` (${cellData.room})` : ''}
                               </span>
                             )}
                           </td>

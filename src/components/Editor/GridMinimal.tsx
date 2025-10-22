@@ -29,29 +29,34 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
     return null;
   }
 
-  // Calculate exact sizing to fit within 6.3 inches (604.8px at 96 DPI)
+  // Calculate exact sizing to fit within 6.9 inches (662.4px at 96 DPI)
   // Maximum possible rows: 32 body rows + 1 header row = 33 total
   const totalRows = daysOfWeek.reduce((acc, d) => {
     const dayRows = activeBatchIndicesByDay?.[d]?.length || batches.length;
     return acc + dayRows;
   }, 0);
   
-  // Calculate row height: 6.3 inches = 604.8px at 96 DPI
-  // All rows (including header) should have same height
-  // Account for borders (1px per row)
+  // Calculate row height: 6.9 inches = 662.4px at 96 DPI
+  // With maximum space available, ensure all rows fit comfortably
   const totalRowsWithHeader = totalRows + 1; // +1 for header row
-  const availableHeight = 605; // 6.3 inches in pixels
-  const calculatedRowHeight = Math.floor((availableHeight - totalRowsWithHeader) / Math.max(totalRowsWithHeader, 1));
+  const isChromium = typeof window !== 'undefined' && (window as any).chrome;
   
-  // Set row height with minimum of 16px to maintain readability
-  // For 31 rows (30 body + 1 header): (605-31)/31 = 18.5px per row
-  const rowHeightPx = Math.max(Math.min(calculatedRowHeight, 30), 16);
+  // With 6.9 inches, we have 662px available - MAXIMUM compression to fit all rows
+  // For 29 rows + 1 header = 30 total rows, need MAXIMUM compression
+  const availableHeight = totalRowsWithHeader >= 30 ? 620 : totalRowsWithHeader >= 28 ? 640 : totalRowsWithHeader >= 25 ? 650 : isChromium ? 655 : 655;
+  const borderCompensation = totalRowsWithHeader * 1; // 1px border per row
+  const calculatedRowHeight = Math.floor((availableHeight - borderCompensation) / Math.max(totalRowsWithHeader, 1));
   
-  // Maximize font sizes for better print visibility
-  // Use larger fonts since we have more space (6.3 inches)
-  const textSizeClass = rowHeightPx <= 17 ? 'text-[9px]' : rowHeightPx <= 19 ? 'text-[10px]' : rowHeightPx <= 22 ? 'text-[11px]' : 'text-[12px]';
-  const cellPaddingY = rowHeightPx > 20 ? 'py-0.5' : ''; // Add padding for larger rows
-  const headerPaddingY = cellPaddingY; // Same padding for header
+  // MAXIMUM compression for 30+ rows - smallest possible size to fit all rows
+  const minHeight = totalRowsWithHeader >= 30 ? 14 : totalRowsWithHeader >= 28 ? 15 : totalRowsWithHeader >= 25 ? 16 : totalRowsWithHeader >= 20 ? 17 : 19;
+  const maxHeight = totalRowsWithHeader >= 30 ? 18 : totalRowsWithHeader >= 28 ? 19 : totalRowsWithHeader >= 25 ? 21 : totalRowsWithHeader >= 20 ? 23 : 25;
+  const rowHeightPx = Math.max(Math.min(calculatedRowHeight, maxHeight), minHeight);
+  
+  // Dynamic font sizes based on row height for optimal visibility
+  // With more space, we can use slightly larger fonts
+  const textSizeClass = rowHeightPx <= 16 ? 'text-[9px]' : rowHeightPx <= 18 ? 'text-[10px]' : rowHeightPx <= 20 ? 'text-[11px]' : rowHeightPx <= 22 ? 'text-[12px]' : 'text-[13px]';
+  const cellPaddingY = ''; // No padding to maximize space
+  const headerPaddingY = ''; // No padding for headers either
 
   // Determine total number of body rows across all days to support a single merged lunch column
   const activeIndicesByDay: Record<DayType, number[]> = Object.fromEntries(
@@ -62,30 +67,41 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
 
   // Helper function to get teacher short name from teachers list
   const getTeacherShortName = (teacherShort?: string): string => {
-    if (!teacherShort) return '';
+    if (!teacherShort || teacherShort === 'Not Specific') return '';
     const teacher = teachers.find(t => t.shortName === teacherShort);
     return teacher ? teacher.shortName : teacherShort;
   };
 
   return (
-    <div className="w-full" style={{ height: '100%', maxHeight: '6.3in' }}>
-      <table className={`w-full table-fixed border-collapse ${textSizeClass}`} style={{ tableLayout: 'fixed' }}>
+    <div className="w-full" style={{ 
+      height: '100%', 
+      maxHeight: '6.9in',
+      WebkitFontSmoothing: 'subpixel-antialiased',
+      MozOsxFontSmoothing: 'grayscale',
+      textRendering: 'geometricPrecision'
+    }}>
+      <table className={`w-full table-fixed border-collapse ${textSizeClass}`} style={{ 
+        tableLayout: 'fixed',
+        borderSpacing: 0,
+        WebkitFontSmoothing: 'subpixel-antialiased',
+        textRendering: 'geometricPrecision'
+      }}>
         <colgroup>
-          <col style={{ width: '7%' }} />
-          <col style={{ width: '11%' }} />
+          <col style={{ width: '6%' }} />
+          <col style={{ width: '10%' }} />
           {timeHeaders.map((_, i) => (
-            <col key={i} style={i === LUNCH_INDEX ? { width: '7%' } : { width: '12.5%' }} />
+            <col key={i} style={i === LUNCH_INDEX ? { width: '9%' } : { width: '12.5%' }} />
           ))}
         </colgroup>
         <thead>
           <tr>
-            <th className={`border border-gray-800 ${headerPaddingY} align-middle text-gray-900 font-bold`} style={{ fontSize: '11px', height: `${rowHeightPx}px`, padding: '2px' }}>Time</th>
-            <th className={`border border-gray-800 ${headerPaddingY} align-middle text-gray-900 font-bold`} style={{ fontSize: '11px', height: `${rowHeightPx}px`, padding: '2px' }}>All Year</th>
+            <th className={`border border-gray-800 ${headerPaddingY} align-middle text-gray-900 font-bold`} style={{ fontSize: '12px', fontWeight: '800', height: `${rowHeightPx}px`, padding: '2px', fontFamily: 'Times New Roman, Times, serif' }}>Time</th>
+            <th className={`border border-gray-800 ${headerPaddingY} align-middle text-gray-900 font-bold`} style={{ fontSize: '12px', fontWeight: '800', height: `${rowHeightPx}px`, padding: '2px', fontFamily: 'Times New Roman, Times, serif' }}>All Year</th>
             {timeHeaders.map((h, i) => (
               <th
                 key={h}
                 className={`border border-gray-800 ${headerPaddingY} text-center text-gray-900 font-bold ${i === LUNCH_INDEX ? 'bg-yellow-50' : 'bg-gray-100'}`}
-                style={{ fontSize: '11px', height: `${rowHeightPx}px`, padding: '2px' }}
+                style={{ fontSize: '12px', fontWeight: '800', height: `${rowHeightPx}px`, padding: '2px', fontFamily: 'Times New Roman, Times, serif' }}
               >
                 {h}
               </th>
@@ -111,7 +127,7 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
                   return (
                     <tr key={`${day}-${batch.name}`}>
                       {renderDayCell && (
-                        <td rowSpan={activeIndices.length} className="border border-gray-800 text-center font-bold uppercase align-middle bg-gray-50 text-gray-900" style={{ fontSize: '10px', ...rowHeightStyle, padding: '1px 2px' }}>
+                        <td rowSpan={activeIndices.length} className="border border-gray-800 text-center font-bold uppercase align-middle bg-gray-50 text-gray-900" style={{ fontSize: '11px', fontWeight: '800', ...rowHeightStyle, padding: '1px 2px', fontFamily: 'Times New Roman, Times, serif' }}>
                           {day === 'saturday' && 'SAT'}
                           {day === 'sunday' && 'SUN'}
                           {day === 'monday' && 'MON'}
@@ -119,7 +135,7 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
                           {day === 'wednesday' && 'WED'}
                         </td>
                       )}
-                      <td className={`border border-gray-800 ${cellPaddingY} text-center font-bold bg-gray-50 text-gray-900`} style={{ ...rowHeightStyle, fontSize: '10px', padding: '1px 2px' }}>{batch.name}</td>
+                      <td className={`border border-gray-800 ${cellPaddingY} text-center font-bold bg-gray-50 text-gray-900`} style={{ ...rowHeightStyle, fontSize: '11px', fontWeight: '800', padding: '1px 2px', fontFamily: 'Times New Roman, Times, serif' }}>{batch.name}</td>
 
                       {timeHeaders.map((_, timeslotIndex) => {
                         if (timeslotIndex === LUNCH_INDEX) {
@@ -166,10 +182,11 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
                         const colSpan = cellData.merged?.colspan || 1;
                         
                         // Format cell content as: COURSE CODE (ROOM NO.) TEACHER SHORT NAME
+                        // Skip 'Not Specific' values
                         let cellContent = '';
                         if (cellData.courseCode) {
                           cellContent = cellData.courseCode;
-                          if (cellData.room) {
+                          if (cellData.room && cellData.room !== 'Not Specific') {
                             cellContent += ` (${cellData.room})`;
                           }
                           const teacherShort = getTeacherShortName(cellData.teacherShort);
@@ -186,7 +203,22 @@ const GridMinimal: React.FC<GridMinimalProps> = ({ gridData, batches, teachers, 
                             style={{ ...rowHeightStyle }}
                           >
                             {cellContent && (
-                              <span className="font-semibold grid-cell-text" data-max="11" data-min="8" style={{ fontSize: `${Math.max(rowHeightPx * 0.55, 9)}px`, color: '#000000', fontWeight: '600', lineHeight: 1.1, display: 'block', padding: '0 1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              <span className="font-bold grid-cell-text" data-max="13" data-min="9" style={{ 
+                                fontSize: `${Math.max(rowHeightPx * 0.65, 9)}px`, 
+                                color: '#000000', 
+                                fontWeight: '800', 
+                                fontFamily: 'Times New Roman, Times, serif',
+                                lineHeight: 1.1, 
+                                display: 'block', 
+                                padding: '0 1px', 
+                                whiteSpace: 'nowrap', 
+                                overflow: 'hidden', 
+                                textOverflow: 'ellipsis',
+                                WebkitFontSmoothing: 'subpixel-antialiased',
+                                textRendering: 'geometricPrecision',
+                                transform: 'translateZ(0)',
+                                letterSpacing: '0.2px'
+                              }}>
                                 {cellContent}
                               </span>
                             )}

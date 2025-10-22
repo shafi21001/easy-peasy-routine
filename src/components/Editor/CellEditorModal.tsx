@@ -97,6 +97,7 @@ const CellEditorModal: React.FC<CellEditorModalProps> = ({
               className="w-full border-2 border-green-300 rounded-lg p-3 bg-white focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all outline-none text-gray-800"
             >
               <option value="">Select Room</option>
+              <option value="Not Specific">Not Specific</option>
               {availableRooms.map(room => (
                 <option key={room.name} value={room.name}>
                   {room.name}

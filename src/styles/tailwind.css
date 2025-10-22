@@ -2,4 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-/* intentionally empty default tailwind directives */
+/* Global font rendering improvements for better cross-browser compatibility */
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Specific fixes for print and PDF rendering */
+  @media print {
+    * {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      color-adjust: exact;
+    }
+  }
+  
+  /* Fix for Chrome/Edge text rendering in small font sizes */
+  .grid-cell-text {
+    -webkit-font-smoothing: subpixel-antialiased;
+    text-rendering: geometricPrecision;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  
+  /* Ensure consistent rendering in PDF generation */
+  #print-preview-minimal * {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transform: translateZ(0);
+    font-weight: 600;
+  }
+  
+  /* Enhanced text clarity for printing */
+  #print-preview-minimal table {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-text-stroke: 0.2px;
+    text-shadow: 0 0 0.01px rgba(0,0,0,0.8);
+  }
+  
+  #print-preview-minimal td,
+  #print-preview-minimal th {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Chrome-specific text rendering improvements */
+  @media screen and (-webkit-min-device-pixel-ratio:0) {
+    #print-preview-minimal * {
+      -webkit-font-smoothing: subpixel-antialiased;
+      text-rendering: optimizeSpeed;
+    }
+  }
+}

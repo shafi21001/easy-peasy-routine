@@ -7,7 +7,7 @@ const Home: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleViewExistingRoutines = () => {
-    // Trigger file picker
+    // Directly trigger file picker
     fileInputRef.current?.click();
   };
 
@@ -104,6 +104,18 @@ const Home: React.FC = () => {
         onChange={handleFileSelect}
         style={{ display: 'none' }}
       />
+
+
+      {/* Developer Credits */}
+      <div className="mt-12 py-6 border-t border-gray-200">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Developed By:</h3>
+          <div className="text-gray-600">
+            <p>1. Md. Shafi Mahmud (IT-21001)</p>
+            <p>2. Md. Emon Hasan (IT-21015)</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -35,14 +35,19 @@ const CourseBoxes: React.FC<CourseBoxesProps> = ({ courses, batches }) => {
           if (box.type === 'batch') {
             const batchCourses = courses.filter(c => c.batchName === box.batchName);
             return (
-              <div key={idx} className="p-2 border border-gray-400">
-                <ul className="text-[11px] list-disc pl-4 space-y-1">
-                  {batchCourses.map(course => (
-                    <li key={course.courseCode}>
-                      {course.courseCode} - {course.courseName} ({course.teacherShort})
-                    </li>
-                  ))}
-                </ul>
+              <div key={idx} className="p-1 border border-gray-400">
+                <div className="text-[10px] space-y-0.5">
+                  {batchCourses.map(course => {
+                    const teacherDisplay = course.teacherShort && course.teacherShort !== 'Not Specific' 
+                      ? ` (${course.teacherShort})` 
+                      : '';
+                    return (
+                      <div key={course.courseCode} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingLeft: '2px' }}>
+                        {course.courseCode} - {course.courseName}{teacherDisplay}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             );
           }

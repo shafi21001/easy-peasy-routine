@@ -78,70 +78,72 @@ const Step2: React.FC<Step2Props> = ({ onNext, onPrevious, initialData, numBatch
     onNext({ batches, teachers, rooms });
   };
 
+  const inputClass = "border-2 border-gray-300 rounded-md shadow-sm px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none";
+  
   return (
-    <form onSubmit={validateAndSubmit} className="space-y-6 p-4">
-      <h2 className="text-xl font-semibold">Batch Details</h2>
+    <form onSubmit={validateAndSubmit} className="space-y-6 p-6">
+      <h2 className="text-xl font-semibold mb-4">Batch Details</h2>
       {batches.map((batch, i) => (
-        <div key={i} className="flex items-center gap-3">
-          <label className="text-sm font-medium text-gray-700 w-40">Batch {i + 1} Name:</label>
+        <div key={i} className="grid grid-cols-[150px_300px_150px_150px] gap-4 items-center">
+          <label className="text-sm font-semibold text-gray-700 text-right">Batch {i + 1} Name:</label>
           <input
             type="text"
             value={batch.name}
             onChange={(e) => handleBatchChange(i, 'name', e.target.value)}
-            className="border border-gray-300 rounded-md shadow-sm px-2 py-1 w-1/2"
+            className={inputClass}
             required
           />
-          <label className="text-sm font-medium text-gray-700 w-28">No. of Courses:</label>
+          <label className="text-sm font-semibold text-gray-700 text-right">No. of Courses:</label>
           <input
             type="number"
             value={batch.numCourses}
             onChange={(e) => handleBatchChange(i, 'numCourses', parseInt(e.target.value))}
             min="1"
-            className="border border-gray-300 rounded-md shadow-sm px-2 py-1 w-28"
+            className={`${inputClass} w-24`}
             required
           />
         </div>
       ))}
 
-      <h2 className="text-xl font-semibold mt-6">Teacher Details</h2>
+      <h2 className="text-xl font-semibold mt-6 mb-4">Teacher Details</h2>
       {teachers.map((teacher, i) => (
-        <div key={i} className="flex items-center gap-3">
-          <label className="text-sm font-medium text-gray-700 w-56">Teacher {i + 1} Full Name:</label>
+        <div key={i} className="grid grid-cols-[180px_250px_100px_120px_180px_250px] gap-3 items-center">
+          <label className="text-sm font-semibold text-gray-700 text-right">Teacher {i + 1} Full Name:</label>
           <input
             type="text"
             value={teacher.fullName}
             onChange={(e) => handleTeacherChange(i, 'fullName', e.target.value)}
-            className="border border-gray-300 rounded-md shadow-sm px-2 py-1 w-1/3"
+            className={inputClass}
             required
           />
-          <label className="text-sm font-medium text-gray-700 w-32">Short Name:</label>
+          <label className="text-sm font-semibold text-gray-700 text-right">Short Name:</label>
           <input
             type="text"
             value={teacher.shortName}
             onChange={(e) => handleTeacherChange(i, 'shortName', e.target.value)}
-            className="border border-gray-300 rounded-md shadow-sm px-2 py-1 w-32"
+            className={`${inputClass} w-24`}
             required
           />
-          <label className="text-sm font-medium text-gray-700 w-56">Designation & Department:</label>
+          <label className="text-sm font-semibold text-gray-700 text-right">Designation & Dept:</label>
           <input
             type="text"
             value={teacher.department}
             onChange={(e) => handleTeacherChange(i, 'department', e.target.value)}
-            className="border border-gray-300 rounded-md shadow-sm px-2 py-1 w-1/3"
+            className={inputClass}
             required
           />
         </div>
       ))}
 
-      <h2 className="text-xl font-semibold mt-6">Room Names</h2>
+      <h2 className="text-xl font-semibold mt-6 mb-4">Room Names</h2>
       {rooms.map((room, i) => (
-        <div key={i} className="flex items-center gap-3">
-          <label className="text-sm font-medium text-gray-700 w-40">Room {i + 1} Name:</label>
+        <div key={i} className="grid grid-cols-[150px_150px] gap-4 items-center">
+          <label className="text-sm font-semibold text-gray-700 text-right">Room {i + 1} Name:</label>
           <input
             type="text"
             value={room.name}
             onChange={(e) => handleRoomChange(i, 'name', e.target.value)}
-            className="border border-gray-300 rounded-md shadow-sm px-2 py-1 w-full max-w-xl"
+            className={`${inputClass} w-32`}
             required
           />
         </div>
