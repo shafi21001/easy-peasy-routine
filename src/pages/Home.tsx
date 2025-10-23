@@ -18,7 +18,7 @@ const Home: React.FC = () => {
     try {
       const text = await file.text();
       const appState = importSnapshotFromJson(text);
-      
+
       if (appState) {
         // Navigate to editor with the loaded state
         navigate('/editor', { state: { loadedAppState: appState } });
@@ -29,7 +29,7 @@ const Home: React.FC = () => {
       console.error('Error loading file:', error);
       alert('Failed to load routine file. Please make sure it is a valid JSON file.');
     }
-    
+
     // Reset the input so the same file can be selected again
     event.target.value = '';
   };
@@ -40,24 +40,24 @@ const Home: React.FC = () => {
       <div className="flex flex-col items-center justify-center py-16">
         <h1 className="text-6xl font-extrabold mb-4 text-gray-900 text-center" style={{ fontFamily: 'cursive' }}>Easy Peasy Routine</h1>
         <p className="text-lg text-gray-600 mb-8 text-center max-w-2xl">
-          Create, manage, and export university class schedules with ease. 
+          Create, manage, and export university class schedules with ease.
           No more complex spreadsheets or manual conflict checking.
         </p>
-        
+
         <div className="flex flex-col items-center gap-4">
-          <button 
+          <button
             onClick={() => navigate('/wizard')}
             className="inline-flex items-center justify-center min-w-[18rem] px-8 py-4 text-lg text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 font-semibold"
           >
             Create New Routine
           </button>
-          <button 
+          <button
             onClick={handleViewExistingRoutines}
             className="inline-flex items-center justify-center min-w-[18rem] px-8 py-4 text-lg text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 font-semibold"
           >
             View Existing Routines
           </button>
-          <button 
+          <button
             onClick={() => navigate('/how-to-use')}
             className="inline-flex items-center justify-center min-w-[18rem] px-8 py-4 text-lg text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-200 font-semibold"
           >
@@ -110,12 +110,22 @@ const Home: React.FC = () => {
       <div className="mt-12 py-6 border-t border-gray-200">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-gray-800 mb-2">Developed By:</h3>
-          <div className="text-gray-600">
-            <p>1. Md. Shafi Mahmud (IT-21001)</p>
-            <p>2. Md. Emon Hasan (IT-21015)</p>
+          <div className="text-gray-600 space-y-1">
+            <a
+              href="https://shafi21001.github.io/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block no-underline hover:text-blue-600 transition-colors"
+            >
+              1. Md. Shafi Mahmud (IT-21001)
+            </a>
+            <span className="block">
+              2. Md. Emon Hasan (IT-21015)
+            </span>
           </div>
         </div>
       </div>
+
     </div>
   );
 };
