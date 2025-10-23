@@ -18,18 +18,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Spacer for 2-inch empty space */}
             <div style={{ width: '2in' }}></div>
 
-            {/* Logo */}
-            <img
-              src="/assets/logo.png"
-              alt="Logo"
-              style={{
-                width: '0.8in',
-                height: '0.8in',
-                borderRadius: '0.25rem',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                marginRight: '1rem',
-              }}
-            />
+            {/* Logo with link */}
+            <a href="https://ict.mbstu.ac.bd/" target="_blank" rel="noopener noreferrer">
+              <img
+                src="/assets/logo.png"
+                alt="Logo"
+                style={{
+                  width: '0.8in',
+                  height: '0.8in',
+                  borderRadius: '0.25rem',
+                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                  marginRight: '1rem',
+                  cursor: 'pointer',
+                }}
+              />
+            </a>
 
             {/* University Name */}
             <span
@@ -42,9 +45,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               Department of Information and Communication Technology
             </span>
           </div>
-
-
-
           <nav className="hidden md:flex items-center space-x-6">
             <NavLink to="/" className={({ isActive }) => `text-gray-700 hover:text-gray-900 ${isActive ? 'font-semibold underline-offset-4' : ''}`}>
               Home
