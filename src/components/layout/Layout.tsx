@@ -12,39 +12,46 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <header className="shadow-sm sticky top-0 z-40" style={{ backgroundColor: '#d6ecff' }}>
         <div className="container mx-auto px-4 py-2 flex justify-between items-center">
           <div
-            className="flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg rounded-md select-none cursor-default"
-            style={{ fontFamily: '"Lucida Handwriting", "Brush Script MT", cursive' }}
+            className="w-full flex justify-center px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg rounded-md select-none cursor-default"
+            style={{
+              fontFamily: '"Lucida Handwriting", "Brush Script MT", cursive',
+            }}
           >
-            {/* Spacer for 2-inch empty space */}
-            <div style={{ width: '2in' }}></div>
+            <div className="flex items-center justify-center gap-4 max-w-5xl w-full text-center flex-wrap">
+              {/* Logo with link */}
+              <a
+                href="https://ict.mbstu.ac.bd/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0"
+              >
+                <img
+                  src="/assets/logo.png"
+                  alt="Logo"
+                  style={{
+                    width: 'clamp(40px, 8vw, 80px)',
+                    height: 'clamp(40px, 8vw, 80px)',
+                    borderRadius: '0.25rem',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    cursor: 'pointer',
+                  }}
+                />
+              </a>
 
-            {/* Logo with link */}
-            <a href="https://ict.mbstu.ac.bd/" target="_blank" rel="noopener noreferrer">
-              <img
-                src="/assets/logo.png"
-                alt="Logo"
+              {/* University Name */}
+              <span
+                className="text-white font-bold"
                 style={{
-                  width: '0.8in',
-                  height: '0.8in',
-                  borderRadius: '0.25rem',
-                  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                  marginRight: '1rem',
-                  cursor: 'pointer',
+                  fontSize: 'clamp(18px, 4vw, 32px)',
+                  lineHeight: 1.2,
                 }}
-              />
-            </a>
-
-            {/* University Name */}
-            <span
-              className="text-white font-bold whitespace-nowrap"
-              style={{
-                fontSize: '32px',
-                textAlign: 'center',
-              }}
-            >
-              Department of Information and Communication Technology
-            </span>
+              >
+                Department of Information and Communication Technology
+              </span>
+            </div>
           </div>
+
+
           <nav className="hidden md:flex items-center space-x-6">
             <NavLink to="/" className={({ isActive }) => `text-gray-700 hover:text-gray-900 ${isActive ? 'font-semibold underline-offset-4' : ''}`}>
               Home
